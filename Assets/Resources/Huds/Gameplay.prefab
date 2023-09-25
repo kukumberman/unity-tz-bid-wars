@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1455979673429538473}
   - component: {fileID: 277728885267086353}
+  - component: {fileID: 2556595466157882898}
   m_Layer: 5
   m_Name: Gameplay
   m_TagString: Untagged
@@ -54,6 +55,26 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 722b26f1fe1fa5741907f97952f82757, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _contentPopup: {fileID: 1455979674344470021}
+  _txtPopup: {fileID: 1455979673705309024}
+  _imgItem: {fileID: 1455979675023073991}
+  _memberCollection: {fileID: 2556595466157882898}
+  _btnBid: {fileID: 1455979675505147664}
+  _btnPass: {fileID: 1455979673863011046}
+--- !u!114 &2556595466157882898
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1455979673429538472}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ddde49adb3551064488e0292fae4da2d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _itemPrefab: {fileID: 1807483797730077440, guid: b44279a50050fff45b42578a70e9b881, type: 3}
+  _contentParent: {fileID: 1455979673713995504}
 --- !u!1 &1455979673705309026
 GameObject:
   m_ObjectHideFlags: 0

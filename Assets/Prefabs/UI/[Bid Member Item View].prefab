@@ -374,6 +374,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 595506695609941993}
+  - component: {fileID: 1807483797730077440}
   m_Layer: 5
   m_Name: '[Bid Member Item View]'
   m_TagString: Untagged
@@ -405,6 +406,22 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 200, y: 200}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1807483797730077440
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 595506695609941994}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 619376546a5983a4f8d93a690096c519, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _imgProfile: {fileID: 595506695846401285}
+  _txtName: {fileID: 595506694703399473}
+  _contentPopup: {fileID: 595506695050965673}
+  _txtPopup: {fileID: 595506696700410888}
 --- !u!1 &595506695846401287
 GameObject:
   m_ObjectHideFlags: 0
