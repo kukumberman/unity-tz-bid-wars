@@ -19,6 +19,7 @@ namespace Project.UI
     {
         public event Action OnBidButtonClicked;
         public event Action OnPassButtonClicked;
+        public event Action OnRestartButtonClicked;
 
         [SerializeField]
         private GameObject _contentPopup;
@@ -38,10 +39,14 @@ namespace Project.UI
         [SerializeField]
         private Button _btnPass;
 
+        [SerializeField]
+        private Button _btnRestart;
+
         protected override void OnEnable()
         {
             _btnBid.onClick.AddListener(ButtonBidClickHandler);
             _btnPass.onClick.AddListener(ButtonPassClickHandler);
+            _btnRestart.onClick.AddListener(ButtonRestartClickHandler);
         }
 
         protected override void OnDisable()
@@ -71,6 +76,22 @@ namespace Project.UI
             _contentPopup.SetActive(false);
         }
 
+        public void ShowButtons(bool active)
+        {
+            _btnBid.gameObject.SetActive(active);
+            _btnPass.gameObject.SetActive(active);
+        }
+
+        public void ShowRestart(bool active)
+        {
+            _btnRestart.gameObject.SetActive(active);
+        }
+
+        public void ShowMemberPopup(string id, string text)
+        {
+            _memberCollection.ShowMemberPopup(id, text);
+        }
+
         private void ButtonBidClickHandler()
         {
             OnBidButtonClicked.SafeInvoke();
@@ -80,20 +101,35 @@ namespace Project.UI
         {
             OnPassButtonClicked.SafeInvoke();
         }
+
+        private void ButtonRestartClickHandler()
+        {
+            OnRestartButtonClicked.SafeInvoke();
+        }
     }
 
     public sealed class GameplayHudMediator : Mediator<GameplayHudView>
     {
-        private const string kTemplateNextPrice = "Anyone for {0}?";
+        public event Action OnRestart;
+
+        private const string kTemplateStartPrice = "Starting at {0}."; // price
+        private const string kTemplateNextPrice = "Anyone for {0}?"; // price
+        private const string kTemplateWait = "At {0} going {1}..."; // price, sequence
+        private const string kTemplateSold = "Sold for {0}!\n({1})"; // price, name
+
+        private static readonly string[] kSequenceArray = new string[] { "once", "twice", };
 
         [Inject]
-        private BidManager _bidManager;
+        private IBidManager _bidManager;
 
         private GameplayHudModel _viewModel;
 
         protected override void Show()
         {
-            _bidManager.OnNextPriceChanged += BidManager_OnNextPriceChanged;
+            _view.OnBidButtonClicked += View_OnBidButtonClicked;
+            _view.OnRestartButtonClicked += View_OnRestartButtonClicked;
+
+            _bidManager.OnEvent += BidManager_OnEvent;
 
             _viewModel = new GameplayHudModel
             {
@@ -104,6 +140,24 @@ namespace Project.UI
                 },
             };
 
+            PopulateMembers();
+
+            _view.ShowButtons(false);
+            _view.ShowRestart(false);
+
+            _view.Model = _viewModel;
+        }
+
+        protected override void Hide()
+        {
+            _view.OnBidButtonClicked -= View_OnBidButtonClicked;
+            _view.OnRestartButtonClicked -= View_OnRestartButtonClicked;
+
+            _bidManager.OnEvent -= BidManager_OnEvent;
+        }
+
+        private void PopulateMembers()
+        {
             for (int i = 0; i < _viewModel.MemberCollectionModel.ItemModels.Length; i++)
             {
                 var member = _bidManager.Members[i];
@@ -112,26 +166,78 @@ namespace Project.UI
                     Id = member.Id,
                     DisplayName = member.DisplayName,
                     ProfileSprite = member.ProfileSprite,
-                    IsPopupActive = false,
-                    PopupText = "",
                 };
 
                 _viewModel.MemberCollectionModel.ItemModels[i] = memberModel;
             }
-
-            _view.Model = _viewModel;
         }
 
-        protected override void Hide()
+        private void View_OnBidButtonClicked()
         {
-            _bidManager.OnNextPriceChanged -= BidManager_OnNextPriceChanged;
+            _bidManager.ProcessLocalPlayerBid();
         }
 
-        private void BidManager_OnNextPriceChanged()
+        private void View_OnRestartButtonClicked()
         {
-            var price = _bidManager.FormatPrice(_bidManager.CurrentPrice);
-            var text = string.Format(kTemplateNextPrice, price);
-            _view.ShowPopup(text);
+            OnRestart.SafeInvoke();
+        }
+
+        private void BidManager_OnEvent(BidEvent evt)
+        {
+            if (evt is BidEventCountdown countdownEvent)
+            {
+                var text = $"{countdownEvent.TimeLeft}";
+                _view.ShowPopup(text);
+            }
+            else if (evt is BidEventGameStart startEvent)
+            {
+                var price = _bidManager.FormatPrice(startEvent.Price);
+                var text = string.Format(kTemplateStartPrice, price);
+                _view.ShowPopup(text);
+                _view.ShowButtons(true);
+            }
+            else if (evt is BidEventRoundStart roundEvent)
+            {
+                var price = _bidManager.FormatPrice(roundEvent.Price);
+                var text = string.Format(kTemplateNextPrice, price);
+                _view.ShowPopup(text);
+                _view.ShowButtons(true);
+            }
+            else if (evt is BidEventMemberVote voteEvent)
+            {
+                var price = _bidManager.FormatPrice(voteEvent.Price);
+                _view.ShowMemberPopup(voteEvent.MemberId, price);
+
+                if (voteEvent.MemberId == _bidManager.LocalPlayerId)
+                {
+                    _view.ShowButtons(false);
+                }
+            }
+            else if (evt is BidEventRoundTick waitEvent)
+            {
+                var price = _bidManager.FormatPrice(waitEvent.Price);
+                var text = string.Format(
+                    kTemplateWait,
+                    price,
+                    kSequenceArray[waitEvent.SequenceIndex]
+                );
+                _view.ShowPopup(text);
+            }
+            else if (evt is BidEventSold soldEvent)
+            {
+                var price = _bidManager.FormatPrice(soldEvent.Price);
+                var winner = _bidManager.Members.Find(member => member.Id == soldEvent.WinnerId);
+                var text = string.Format(kTemplateSold, price, winner.DisplayName);
+                _view.ShowPopup(text);
+                _view.ShowButtons(false);
+                _view.ShowRestart(true);
+            }
+            else if (evt is BidEventJunkNotSold junkEvent)
+            {
+                _view.ShowPopup("Haha this is a junk item and nobody wants to buy it!");
+                _view.ShowButtons(false);
+                _view.ShowRestart(true);
+            }
         }
     }
 }

@@ -1,4 +1,5 @@
 using Core;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 using Text = TMPro.TextMeshProUGUI;
@@ -10,8 +11,6 @@ namespace Project.UI
         public string Id;
         public string DisplayName;
         public Sprite ProfileSprite;
-        public bool IsPopupActive;
-        public string PopupText;
     }
 
     public sealed class BidMemberItemView : BehaviourWithModel<BidMemberItemModel>
@@ -28,12 +27,35 @@ namespace Project.UI
         [SerializeField]
         private Text _txtPopup;
 
+        protected override void OnApplyModel(BidMemberItemModel model)
+        {
+            _contentPopup.SetActive(false);
+        }
+
         protected override void OnModelChanged(BidMemberItemModel model)
         {
             _imgProfile.sprite = model.ProfileSprite;
             _txtName.text = model.DisplayName;
-            _contentPopup.SetActive(model.IsPopupActive);
-            _txtPopup.text = model.PopupText;
+        }
+
+        public string Id => Model.Id;
+
+        public void ShowPopup(string text)
+        {
+            _contentPopup.SetActive(true);
+            _txtPopup.text = text;
+        }
+
+        public void HidePopup()
+        {
+            _contentPopup.SetActive(false);
+        }
+
+        public void ShowPopupAndAutohide(string text)
+        {
+            ShowPopup(text);
+
+            Invoke(nameof(HidePopup), 1);
         }
     }
 }

@@ -19,12 +19,17 @@ namespace Project.States
         {
             _bidManager = new BidManager();
 
-            _context.Install(_bidManager);
+            _context.InstallByType(_bidManager, typeof(IBidManager));
             _context.ApplyInstall();
 
             _bidManager.Create();
 
-            _hudManager.ShowAdditional<GameplayHudMediator>();
+            var hud = _hudManager.ShowAdditional<GameplayHudMediator>();
+            hud.OnRestart += () =>
+            {
+                Dispose();
+                Initialize();
+            };
 
             _bidManager.Start();
         }
