@@ -3,13 +3,14 @@ using Injection;
 using System.Collections;
 using UnityEngine;
 
-public abstract class BidState : State { }
+public abstract class BidState : State
+{
+    [Inject]
+    protected BidManager _bidManager;
+}
 
 public sealed class BidStateCountdown : BidState
 {
-    [Inject]
-    private BidManager _bidManager;
-
     [Inject]
     private EmptyMonoBehaviour _monoBehaviour;
 
@@ -41,9 +42,6 @@ public sealed class BidStateCountdown : BidState
 
 public sealed class BidStateStart : BidState
 {
-    [Inject]
-    private BidManager _bidManager;
-
     public override void Initialize()
     {
         _bidManager.DispatchEvent(new BidEventGameStart { Price = _bidManager.CurrentPrice });
@@ -57,9 +55,6 @@ public sealed class BidStateStart : BidState
 
 public sealed class BidStateRoundStart : BidState
 {
-    [Inject]
-    private BidManager _bidManager;
-
     public override void Initialize()
     {
         _bidManager.IncreasePrice();
@@ -75,9 +70,6 @@ public sealed class BidStateRoundStart : BidState
 public sealed class BidStateRoundWait : BidState
 {
     private const int kMaxCounter = 2;
-
-    [Inject]
-    private BidManager _bidManager;
 
     [Inject]
     private Timer _timer;
@@ -194,9 +186,6 @@ public sealed class BidStateRoundWait : BidState
 
 public sealed class BidStateEnd : BidState
 {
-    [Inject]
-    private BidManager _bidManager;
-
     public override void Initialize()
     {
         if (_bidManager.Rounds.Count == 1 && _bidManager.Rounds[0].Members.Count == 0)
